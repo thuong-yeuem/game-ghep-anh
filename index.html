@@ -2,47 +2,204 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Ghép ảnh lịch sử</title>
+<title>Ghép ảnh có bảng xếp hạng</title>
+
 <style>
-body { font-family: Arial; text-align: center; background: #f0f0f0; }
-#game { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; max-width: 400px; margin: auto; }
-.piece {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  background-size: 400px 400px;
-  border: 1px solid #333;
+body{
+  font-family: Arial;
+  text-align: center;
+  background: #f0f0f0;
 }
-#timer { font-size: 18px; margin: 10px; }
+
+#timer{
+  font-size: 18px;
+  margin: 10px;
+  font-weight: bold;
+}
+
+#game{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  width: 400px;
+  margin: auto;
+}
+
+.piece{
+  aspect-ratio: 1/1;
+  background-image: url("anh.jpg");
+  background-size: 400px 200px;
+  border: 1px solid #333;
+  cursor: pointer;
+}
+
+#leaderboard{
+  margin-top: 15px;
+  background: #fff;
+  width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+button{
+  margin-top: 10px;
+  padding: 6px 12px;
+}
 </style>
 </head>
+
 <body>
 
-<h2>Trò chơi ghép ảnh</h2>
-<p>Thời gian: <span id="timer">300</span> giây</p>
+<h2>🧩 Trò chơi ghép ảnh</h2>
+<div id="timer">⏱️ Thời gian: <span id="time">300</span> giây</div>
+
 <div id="game"></div>
 
-<script>
-const img = "anh.jpg";
-const game = document.getElementById("game");
-let time = 300;
+<button onclick="toggleMusic()">🔊 Bật / Tắt nhạc</button>
 
+<div id="leaderboard">
+  <h3>🏆 Bảng xếp hạng</h3>
+  <ol id="scores"></ol>
+</div>
+
+<!-- ÂM THANH -->
+<audio id="clickSound" src="click.mp3"></audio>
+<audio id="winSound" src="win.mp3"></audio>
+<audio id="loseSound" src="lose.mp3"></audio>
+<audio id="bgMusic" src="music.mp3" loop></audio>
+
+<script>
+const game = document.getElementById("game");
+const timeEl = document.getElementById("time");
+const scoresEl = document.getElementById("scores");
+
+const clickSound = document.getElementById("clickSound");
+const winSound = document.getElementById("winSound");
+const loseSound = document.getElementById("loseSound");
+const bgMusic = document.getElementById("bgMusic");
+
+let time = 300;
+let selected = null;
+let musicOn = false;
+
+// bật nhạc khi chạm lần đầu
+document.body.addEventListener("click", ()=>{
+  if(!musicOn){
+    bgMusic.volume = 0.4;
+    bgMusic.play();
+    musicOn = true;
+  }
+},{once:true});
+
+// tạo vị trí
 let positions = [];
 for(let i=0;i<8;i++) positions.push(i);
 positions.sort(()=>Math.random()-0.5);
 
-positions.forEach(p=>{
+// tạo mảnh
+positions.forEach(pos=>{
   const d = document.createElement("div");
   d.className = "piece";
-  d.style.backgroundImage = `url(${img})`;
-  d.style.backgroundPosition = `${-(p%4)*100}px ${-Math.floor(p/4)*100}px`;
+
+  const x = (pos % 4) * 100;
+  const y = Math.floor(pos / 4) * 100;
+  d.style.backgroundPosition = `-${x}px -${y}px`;
+
+  d.onclick = ()=>{
+    clickSound.currentTime = 0;
+    clickSound.play();
+
+    if(!selected){
+      selected = d;
+      d.style.border = "3px solid red";
+    }else{
+      swap(selected, d);
+      selected.style.border = "1px solid #333";
+      selected = null;
+      checkWin();
+    }
+  };
+
   game.appendChild(d);
 });
 
+// đổi chỗ
+function swap(a,b){
+  const temp = a.style.backgroundPosition;
+  a.style.backgroundPosition = b.style.backgroundPosition;
+  b.style.backgroundPosition = temp;
+}
+
+// kiểm tra thắng
+function checkWin(){
+  const pieces = document.querySelectorAll(".piece");
+  let ok = true;
+  pieces.forEach((p,i)=>{
+    const cx = (i % 4) * 100;
+    const cy = Math.floor(i / 4) * 100;
+    if(p.style.backgroundPosition !== `-${cx}px -${cy}px`) ok=false;
+  });
+
+  if(ok){
+    bgMusic.pause();
+    winSound.play();
+    saveScore(time);
+    setTimeout(()=>{
+      alert("🎉 Bạn thắng! Điểm: " + time);
+      location.reload();
+    },300);
+  }
+}
+
+// lưu điểm
+function saveScore(score){
+  let name = prompt("Nhập tên của bạn:");
+  if(!name) name = "Ẩn danh";
+
+  let board = JSON.parse(localStorage.getItem("leaderboard")) || [];
+  board.push({name, score});
+  board.sort((a,b)=>b.score-a.score);
+  board = board.slice(0,5);
+
+  localStorage.setItem("leaderboard", JSON.stringify(board));
+  loadScores();
+}
+
+// tải bảng điểm
+function loadScores(){
+  scoresEl.innerHTML = "";
+  let board = JSON.parse(localStorage.getItem("leaderboard")) || [];
+  board.forEach(p=>{
+    const li = document.createElement("li");
+    li.innerText = `${p.name} – ${p.score} điểm`;
+    scoresEl.appendChild(li);
+  });
+}
+
+// nhạc
+function toggleMusic(){
+  if(bgMusic.paused) bgMusic.play();
+  else bgMusic.pause();
+}
+
+// đếm giờ
 setInterval(()=>{
   time--;
-  document.getElementById("timer").innerText = time;
-  if(time<=0) alert("Hết giờ!");
+  timeEl.innerText = time;
+  if(time<=0){
+    bgMusic.pause();
+    loseSound.play();
+    setTimeout(()=>{
+      alert("⏰ Hết giờ!");
+      location.reload();
+    },300);
+  }
 },1000);
+
+// load leaderboard khi mở trang
+loadScores();
 </script>
 
 </body>
