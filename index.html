@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Ghép ảnh lịch sử</title>
+<style>
+body { font-family: Arial; text-align: center; background: #f0f0f0; }
+#game { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; max-width: 400px; margin: auto; }
+.piece {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-size: 400px 400px;
+  border: 1px solid #333;
+}
+#timer { font-size: 18px; margin: 10px; }
+</style>
+</head>
+<body>
+
+<h2>Trò chơi ghép ảnh</h2>
+<p>Thời gian: <span id="timer">300</span> giây</p>
+<div id="game"></div>
+
+<script>
+const img = "anh.jpg";
+const game = document.getElementById("game");
+let time = 300;
+
+let positions = [];
+for(let i=0;i<8;i++) positions.push(i);
+positions.sort(()=>Math.random()-0.5);
+
+positions.forEach(p=>{
+  const d = document.createElement("div");
+  d.className = "piece";
+  d.style.backgroundImage = `url(${img})`;
+  d.style.backgroundPosition = `${-(p%4)*100}px ${-Math.floor(p/4)*100}px`;
+  game.appendChild(d);
+});
+
+setInterval(()=>{
+  time--;
+  document.getElementById("timer").innerText = time;
+  if(time<=0) alert("Hết giờ!");
+},1000);
+</script>
+
+</body>
+</html>
