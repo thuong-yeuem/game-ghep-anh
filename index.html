@@ -2,238 +2,231 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Ghép Ảnh</title>
+<title>Trò chơi ghép ảnh</title>
 
 <style>
-/* ==== ĐỔI MÀU Ở ĐÂY ==== */
-:root{
-  --bg:#0f172a;        /* nền chính */
-  --card:#1e293b;      /* khung */
-  --main:#22c55e;      /* màu nhấn */
-  --text:#e5e7eb;
+* {
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-body{
-  margin:0;
-  font-family:system-ui,sans-serif;
-  background:linear-gradient(135deg,#020617,#0f172a);
-  min-height:100vh;
-  display:flex;
-  justify-content:center;
-  color:var(--text);
+body {
+  margin: 0;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  color: #fff;
+  text-align: center;
 }
 
-.container{
-  width:100%;
-  max-width:420px;
-  background:var(--card);
-  margin:12px;
-  padding:16px;
-  border-radius:18px;
-  box-shadow:0 20px 40px rgba(0,0,0,.5);
+.container {
+  max-width: 420px;
+  margin: 20px auto;
+  padding: 15px;
+  background: #1e293b;
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
 
-/* ===== HEADER ===== */
-h2{
-  text-align:center;
-  margin:0;
-  color:var(--main);
+h1 {
+  color: #22c55e;
 }
 
-.info-box{
-  margin-top:10px;
-  font-size:14px;
-  line-height:1.6;
+input, textarea {
+  width: 100%;
+  padding: 8px;
+  margin: 6px 0;
+  border-radius: 8px;
+  border: none;
+  outline: none;
 }
 
-.info-box span{
-  color:#a5b4fc;
+textarea {
+  resize: none;
 }
 
-/* ===== GAME ===== */
-#game{
-  margin:14px auto;
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:0;
-  background:black;
-  border-radius:14px;
-  overflow:hidden;
+button {
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #22c55e;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
 }
 
-.piece{
-  aspect-ratio:1/1;
-  background-image:url("anh.jpg");
-  background-size:400px 200px;
+.info {
+  text-align: left;
+  margin-top: 10px;
+  background: #0f172a;
+  padding: 10px;
+  border-radius: 10px;
 }
 
-/* ===== CONTROLS ===== */
-.controls{
-  display:flex;
-  gap:8px;
-  margin-top:12px;
+#timer {
+  margin: 10px 0;
+  font-size: 18px;
 }
 
-button{
-  flex:1;
-  padding:10px;
-  border:none;
-  border-radius:12px;
-  background:var(--main);
-  color:#022c22;
-  font-weight:700;
-  font-size:14px;
+#game {
+  width: 300px;
+  height: 300px;
+  margin: 15px auto;
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 0; /* KHÍT ẢNH */
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-button:active{transform:scale(.96);}
-
-/* ===== LEADERBOARD ===== */
-#leaderboard{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.6);
-  justify-content:center;
-  align-items:center;
+.piece {
+  width: 100%;
+  height: 100%;
+  background-image: url("anh.jpg");
+  background-size: 300px 300px;
+  cursor: grab;
 }
 
-.board{
-  background:var(--card);
-  padding:16px;
-  border-radius:16px;
-  width:80%;
-  max-width:300px;
+.controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
 }
-
-.board h3{text-align:center;margin-top:0;}
 </style>
 </head>
 
 <body>
 
 <div class="container">
+  <h1>🧩 Trò chơi ghép ảnh</h1>
 
-<h2>🧩 Trò chơi ghép ảnh</h2>
+  <!-- FORM NHẬP THÔNG TIN -->
+  <input id="groupName" placeholder="Tên nhóm">
+  <input id="imageName" placeholder="Tên ảnh">
+  <textarea id="meaning" rows="2" placeholder="Ý nghĩa bức tranh"></textarea>
+  <button onclick="startGame()">Bắt đầu chơi</button>
 
-<div class="info-box">
-👥 <b>Nhóm:</b> <span>Nhóm Lịch Sử 9A</span><br>
-🖼 <b>Tên ảnh:</b> <span>Hội nghị quốc tế</span><br>
-📖 <b>Ý nghĩa:</b> <span>Thể hiện sự hợp tác, đoàn kết giữa các quốc gia trên thế giới.</span><br>
-⏱ <b>Thời gian:</b> <span id="time">300</span> giây
-</div>
+  <!-- HIỂN THỊ THÔNG TIN -->
+  <div class="info" id="info" style="display:none">
+    👥 <b>Nhóm:</b> <span id="showGroup"></span><br>
+    🖼 <b>Tên ảnh:</b> <span id="showImage"></span><br>
+    📖 <b>Ý nghĩa:</b> <span id="showMeaning"></span>
+  </div>
 
-<div id="game"></div>
+  <div id="timer">⏱ Thời gian: 300 giây</div>
 
-<div class="controls">
-  <button onclick="toggleMusic()">🎵 Nhạc</button>
-  <button onclick="showBoard()">🏆 BXH</button>
-</div>
+  <!-- GAME -->
+  <div id="game"></div>
 
-</div>
-
-<!-- ===== BẢNG XẾP HẠNG ===== -->
-<div id="leaderboard">
-  <div class="board">
-    <h3>🏆 Bảng xếp hạng</h3>
-    <ol id="rank"></ol>
-    <button onclick="closeBoard()">Đóng</button>
+  <div class="controls">
+    <button onclick="toggleMusic()">🎵 Nhạc</button>
   </div>
 </div>
 
-<audio id="click" src="click.mp3"></audio>
-<audio id="music" src="music.mp3" loop></audio>
+<audio id="music" loop>
+  <source src="nhac.mp3" type="audio/mpeg">
+</audio>
 
 <script>
-const rows=2, cols=4;
-let time=300, musicOn=false;
-const game=document.getElementById("game");
-const timeEl=document.getElementById("time");
-let first=null;
+const game = document.getElementById("game");
+const timerEl = document.getElementById("timer");
+const music = document.getElementById("music");
 
-/* TẠO MẢNH */
-let arr=[...Array(rows*cols).keys()];
-arr.sort(()=>Math.random()-.5);
+let time = 300;
+let timer;
+let dragged = null;
 
-arr.forEach(i=>{
-  const d=document.createElement("div");
-  d.className="piece";
-  d.dataset.correct=i;
-  d.style.backgroundPosition=
-   `-${(i%cols)*100}px -${Math.floor(i/cols)*100}px`;
-  d.onclick=()=>tap(d);
-  game.appendChild(d);
-});
+// BẮT ĐẦU GAME
+function startGame() {
+  const g = groupName.value.trim();
+  const i = imageName.value.trim();
+  const m = meaning.value.trim();
 
-function tap(p){
-  document.getElementById("click").play();
-  if(!first){
-    first=p;
-    p.style.opacity=.5;
-  }else{
-    swap(first,p);
-    first.style.opacity=1;
-    first=null;
-    check();
+  if(!g || !i || !m){
+    alert("Vui lòng nhập đầy đủ thông tin!");
+    return;
   }
+
+  info.style.display = "block";
+  showGroup.innerText = g;
+  showImage.innerText = i;
+  showMeaning.innerText = m;
+
+  createPuzzle();
+  startTimer();
 }
 
+// TẠO GHÉP ẢNH
+function createPuzzle() {
+  game.innerHTML = "";
+  let arr = [...Array(9).keys()];
+  arr.sort(()=>Math.random()-0.5);
+
+  arr.forEach(pos=>{
+    const div = document.createElement("div");
+    div.className = "piece";
+    div.draggable = true;
+    div.dataset.correct = pos;
+
+    const x = pos % 3;
+    const y = Math.floor(pos / 3);
+
+    div.style.backgroundPosition = `${-x*100}px ${-y*100}px`;
+
+    div.addEventListener("dragstart",()=>dragged=div);
+    div.addEventListener("dragover",e=>e.preventDefault());
+    div.addEventListener("drop",()=>{
+      swap(div, dragged);
+      checkWin();
+    });
+
+    game.appendChild(div);
+  });
+}
+
+// ĐỔI CHỖ
 function swap(a,b){
-  [a.style.backgroundPosition,b.style.backgroundPosition]=
-  [b.style.backgroundPosition,a.style.backgroundPosition];
-  [a.dataset.correct,b.dataset.correct]=
-  [b.dataset.correct,a.dataset.correct];
+  if(!a || !b) return;
+  let temp = a.style.backgroundPosition;
+  a.style.backgroundPosition = b.style.backgroundPosition;
+  b.style.backgroundPosition = temp;
+
+  let t = a.dataset.correct;
+  a.dataset.correct = b.dataset.correct;
+  b.dataset.correct = t;
 }
 
-function check(){
-  const p=[...document.querySelectorAll(".piece")];
-  if(p.every((x,i)=>x.dataset.correct==i)){
-    save();
+// KIỂM TRA THẮNG
+function checkWin(){
+  const pieces = document.querySelectorAll(".piece");
+  let ok = true;
+  pieces.forEach((p,i)=>{
+    if(p.dataset.correct != i) ok=false;
+  });
+  if(ok){
+    clearInterval(timer);
     alert("🎉 Hoàn thành!");
   }
 }
 
-/* TIMER */
-setInterval(()=>{
-  time--;
-  timeEl.innerText=time;
-  if(time<=0){
-    alert("⏰ Hết giờ!");
-    location.reload();
-  }
-},1000);
+// ĐẾM GIỜ
+function startTimer(){
+  clearInterval(timer);
+  time = 300;
+  timer = setInterval(()=>{
+    time--;
+    timerEl.innerText = `⏱ Thời gian: ${time} giây`;
+    if(time<=0){
+      clearInterval(timer);
+      alert("⛔ Hết giờ!");
+    }
+  },1000);
+}
 
-/* MUSIC */
+// NHẠC
 function toggleMusic(){
-  const m=document.getElementById("music");
-  musicOn?m.pause():m.play();
-  musicOn=!musicOn;
-}
-
-/* LEADERBOARD */
-function save(){
-  const name=prompt("Nhập tên:");
-  if(!name)return;
-  const list=JSON.parse(localStorage.getItem("rank")||"[]");
-  list.push({name,score:300-time});
-  list.sort((a,b)=>a.score-b.score);
-  localStorage.setItem("rank",JSON.stringify(list));
-}
-
-function showBoard(){
-  const list=JSON.parse(localStorage.getItem("rank")||"[]");
-  const ol=document.getElementById("rank");
-  ol.innerHTML="";
-  list.forEach(i=>{
-    const li=document.createElement("li");
-    li.innerText=`${i.name} - ${i.score}s`;
-    ol.appendChild(li);
-  });
-  document.getElementById("leaderboard").style.display="flex";
-}
-
-function closeBoard(){
-  document.getElementById("leaderboard").style.display="none";
+  if(music.paused) music.play();
+  else music.pause();
 }
 </script>
 
